@@ -1,26 +1,55 @@
-## Assignment 7: Simple Model-View-Controller Database Backend Modification
+## Assignment 8: Add the Ability to Delete a User and Move the Add User Form to a Separate Page
 
-This repository contains the Simple MVC Application from week 6.  This Application has just an array of JSON objects in the `userDB.js` file.  This is the model file in MVC and it contains all of the database interaction.  You will need to use **callbacks** for your MySQL2 calls, **Not Promises**. You need to make the following modifications to this application:
-1. Install the MySQL2 Library to your project
-```
-npm install mysql2
-```
-2. Add the database connection code to your `userDB.js` file. All of the required connection values are in the `assignDB.sql` file. (Refer to the MYSQL2 Documentation)
-3. Convert your `getUsers()` function to execute the SQL and return the array of user JSON objects.  Update your View, `manageUsers.ej` to display all of the columns correctly. (Refer to the MYSQL2 Documentation)
-4. Convert your `addUser()` function to store the new user in the **users** table. (Refer to the MYSQL2 Documentation)
+This assignment builds on your Assignment 7, where you added a Database backend for Retrieving Users(SELECT) and Adding a User(INSERT). Ob this assignment, you will add the abulity to delete a user and move the add form to separate psge.
 
-![MVC Diagram](mvcDesign.png)
+### Add the Ability to Delete a User Record
+To add a secure delete capability with client-side confirmation to a traditional server-side rendered Node.js/Express application (using EJS or HTML forms), follow this sequential approach.
 
-To Create the **assignDD** database
-```
-sudo mysql < assignDB.sql
-```
-To run the application.  Clone the repository to your VM.and from the repository directory:
-```
-node server.js
-```
-From the browser: HTTP://localhost:3000
+![User Manage Screen](listwdelete.png)
 
-#### User Management View
+1. Create the Client-Side HTML Form and JS Confirmation:Avoid standard GET links to prevent accidental deletions from web crawlers or prefetching.In your view template (e.g., EJS), use an inline HTML form sending a POST request. Attach an onsubmit handler using standard Vanilla JS confirm() to prompt the user before sending the request.
+```HTML
+<!-- item-list.ejs -->
+<ul>
+  <% items.forEach(item => { %>
+    <li>
+      <span><%= item.name %></span>
+      
+      <!-- Delete Form -->
+      <form 
+        action="/items/<%= item.id %>/delete" 
+        method="POST" 
+        style="display:inline;"
+        onsubmit="return confirm('Are you sure you want to delete item: <%= item.name %>?');"
+      >
+        <button type="submit" class="btn btn-danger">Delete</button>
+      </form>
+    </li>
+  <% }); %>
+</ul>
+```
+2. Define the Express Route Handler:Process the POST request and execute database operations securely.In your Express router or main app file, declare the route handler for /items/:id/delete. Extract the resource identifier from req.params.id, perform the deletion query, and redirect the client back to the updated list.
 
-![User Management](userManage.png)
+```JavaScript
+// routes/items.js
+const express = require('express');
+const router = express.Router();
+const db = require('../db'); // Your database interface/pool
+
+router.post('/items/:id/delete', async (req, res, next) => {
+  const itemId = req.params.id;
+
+  try {
+    // 1. Delete item from database (Example using SQL prepared statements)
+    const result = await db.query('DELETE FROM items WHERE id = ?', [itemId]);
+
+    // 2. Redirect client back to the main resource index
+    res.redirect('/items');
+  } catch (err) {
+    // 3. Forward unexpected errors to Express error handling middleware
+    next(err);
+  }
+});
+
+module.exports = router;
+```
