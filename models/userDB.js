@@ -40,4 +40,20 @@ function addUser(user, callback) {
   }, 500);
 }
 
-module.exports = { getUsers, addUser };
+function deleteUser(user, callback){
+  setTimeout(function() {
+    const sql = 'DELETE FROM `users` WHERE `userID` = ?';
+    const value = [user];
+
+    connection.query(sql, value, (err, result, fields) => {
+      if(err instanceof Error){
+        console.log(err);
+        return;
+      }
+
+      callback(user);
+    });
+  }, 500);
+}
+
+module.exports = { getUsers, addUser, deleteUser };

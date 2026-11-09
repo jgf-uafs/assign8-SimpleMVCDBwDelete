@@ -1,5 +1,6 @@
 const express = require('express');
 const userDB = require('./models/userDB');
+const users = require('./routes/users.js');
 
 const app = express();
 const PORT = 3000;
@@ -7,6 +8,7 @@ const PORT = 3000;
 // ** Middleware **
 app.use(express.urlencoded({ extended: false }));
 app.set("view engine", "ejs");
+app.use("/users", users);
 
 
 // ** Routes ***
@@ -16,14 +18,6 @@ app.get("/", function (req, res) {
         res.render("manageUsers", { users: data });
     });
 });
-
-app.post("/users", function (req, res) {
-    userDB.addUser(req.body, function (data) {
-        console.log(data);
-        res.redirect("/");
-    });
-});
-
 
 app.listen(PORT, function () {
     console.log(`Listening on Port: ${PORT}`);
